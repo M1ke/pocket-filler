@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class PocketController extends Controller {
-	const POCKET_API = '';
 	const SESSION_POCKET_AUTH = 'pocket_auth';
 	const SESSION_POCKET_TOKEN = 'pocket_token';
 	const COOKIE_POCKET_TOKEN = 'pocket_token';
@@ -151,7 +150,7 @@ class PocketController extends Controller {
 	 */
 	private function newPocket($access_token = ''){
 		$pocket = new Pocket([
-			'consumerKey' => self::POCKET_API,
+			'consumerKey' => $this->getParameter('pocket_key'),
 		]);
 		if (!empty($auth_token)){
 			$pocket->setAccessToken($access_token);

@@ -11,8 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class TwitterController extends Controller {
-	const TWITTER_KEY = '';
-	const TWITTER_SECRET = '';
 	const SESSION_TWITTER_AUTH = 'twitter_auth';
 	const COOKIE_TWITTER_TOKEN = 'twitter_auth';
 
@@ -25,7 +23,7 @@ class TwitterController extends Controller {
 	 * @return RedirectResponse
 	 */
 	public function twitterAuthRedirectAction(Request $request){
-		$connection = new TwitterOAuth(self::TWITTER_KEY, self::TWITTER_SECRET);
+		$connection = $this->getTwitter();
 
 		$return_url = $this->generateAbsoluteUrl('twitterAuthReturn');
 
@@ -51,7 +49,7 @@ class TwitterController extends Controller {
 		$twitter_token = $query->get('oauth_token');
 		$twitter_token_secret = $request->getSession()->get(self::SESSION_TWITTER_AUTH);
 
-		$connection = new TwitterOAuth(self::TWITTER_KEY, self::TWITTER_SECRET, $twitter_token, $twitter_token_secret);
+		$connection = $this->getTwitter($twitter_token, $twitter_token_secret);
 		$twitter_access_token = $connection->oauth('oauth/access_token', ['oauth_verifier' => $query->get('oauth_verifier')]);
 
 		$file_path = $this->getFileName();
@@ -71,12 +69,10 @@ class TwitterController extends Controller {
 	 * @return Response
 	 */
 	public function twitterListAction(){
-		$file_path = $this->getFileName();
-		$token_store = file_exists($file_path) ? file_get_contents($file_path) : '';
-		$token_store = json_decode($token_store, true) ?: [];
+		$token_store = $this->getStoredToken();
 
 		if (!empty($token_store)){
-			$connection = new TwitterOAuth(self::TWITTER_KEY, self::TWITTER_SECRET, $token_store['oauth_token'], $token_store['oauth_token_secret']);
+			$connection = $this->getTwitter($token_store['oauth_token'], $token_store['oauth_token_secret']);
 			$statuses = $connection->get('statuses/home_timeline', ['exclude_replies' => true, 'count' => 100]);
 			$statuses = $this->expandUrls($statuses);
 		}
@@ -92,6 +88,17 @@ class TwitterController extends Controller {
 		]);
 
 		return $response;
+	}
+
+	/**
+	 * @param string $token
+	 * @param string $secret
+	 * @return TwitterOAuth
+	 */
+	private function getTwitter($token = null, $secret = null){
+		$connection = new TwitterOAuth($this->getParameter('twitter_key'), $this->getParameter('twitter_secret'), $token, $secret);
+
+		return $connection;
 	}
 
 	/**
@@ -139,7 +146,6 @@ class TwitterController extends Controller {
 			'www.youtube.com',
 			'www.facebook.com',
 			'facebook.com',
-			'www.gmp.police.uk',
 			'www.swarmapp.com',
 		];
 		$url = str_replace(['http://', 'https://'], '', $url);
@@ -165,7 +171,6 @@ class TwitterController extends Controller {
 
 		return $url;
 	}
-
 
 	/**
 	 * @param string $route
@@ -200,5 +205,16 @@ class TwitterController extends Controller {
 		$file_name = $file_path.'/token_twitter';
 
 		return $file_name;
+	}
+
+	/**
+	 * @return array|string
+	 */
+	private function getStoredToken(){
+		$file_path = $this->getFileName();
+		$token_store = file_exists($file_path) ? file_get_contents($file_path) : '';
+		$token_store = json_decode($token_store, true) ?: [];
+
+		return $token_store;
 	}
 }
