@@ -101,7 +101,6 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		return $this->getContainer()->getParameter($name);
 	}
 
-
 	/**
 	 * @param array $statuses
 	 * @return array
