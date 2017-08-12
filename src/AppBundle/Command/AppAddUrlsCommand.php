@@ -148,6 +148,10 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			'facebook.com',
 			'www.swarmapp.com',
 		];
+
+		$extra_ignored = $this->getParameter('extra_ignore_urls');
+		$ignored = array_merge($extra_ignored, $ignored);
+
 		$url = str_replace(['http://', 'https://'], '', $url);
 		foreach ($ignored as $ignore){
 			if (stripos($url, $ignore)===0){
