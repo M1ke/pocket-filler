@@ -30,21 +30,23 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 
 		if (empty($twitter_token)){
 			$output->writeln('No Twitter token has been created so cannot access Twitter');
+			return;
 		}
 
 		$pocket_token = $this->pocketTokenFromFile();
 
 		if (empty($pocket_token)){
 			$output->writeln('No Pocket token has been created so cannot access Pocket');
+			return;
 		}
 
 		$output->writeln('Got Twitter and Pocket tokens, retrieving tweets');
 
-		$connection = $this->getTwitter($twitter_token['oauth_token'], $twitter_token['oauth_token_secret']);
-		$statuses = $connection->get('statuses/home_timeline', ['exclude_replies' => true, 'count' => 100]);
+		$statuses = $this->fetchTweets($twitter_token, $output);
 
 		if (empty($statuses)){
-			$output->writeln('Not able to get Tweets');
+			$output->writeln('No new tweets found (check the recent id file), ending');
+			return;
 		}
 
 		$count = count($statuses);
@@ -53,7 +55,8 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$urls = $this->getUrlsFromTweets($statuses);
 
 		if (empty($urls)){
-			$output->writeln('No valid URLs in Tweets');
+			$output->writeln('No valid URLs in Tweets, ending');
+			return;
 		}
 
 		$count = count($urls);
@@ -62,6 +65,8 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$output->write($urls, true);
 
 		$this->addToPocket($urls, $pocket_token, $output);
+
+		$this->storeRecentTweet($statuses);
 	}
 
 	/**
@@ -198,6 +203,16 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 	}
 
 	/**
+	 * @return string
+	 */
+	private function getRecentFile(){
+		$file_path = $this->getContainer()->get('kernel')->getRootDir();
+		$file_name = $file_path.'/recent_tweet';
+
+		return $file_name;
+	}
+
+	/**
 	 * @param array $urls
 	 * @param string $pocket_token
 	 * @param OutputInterface $output
@@ -257,5 +272,43 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$url = str_replace(['http://', 'https://'], '', $url);
 
 		return $url;
+	}
+
+	/**
+	 * @param array $statuses
+	 */
+	private function storeRecentTweet(array $statuses){
+		$most_recent = reset($statuses);
+
+		$id = $most_recent->id_str;
+
+		$file_path = $this->getRecentFile();
+
+		file_put_contents($file_path, $id);
+	}
+
+	/**
+	 * @param string $twitter_token
+	 * @param OutputInterface $output
+	 * @return array
+	 */
+	protected function fetchTweets($twitter_token, OutputInterface $output){
+		$connection = $this->getTwitter($twitter_token['oauth_token'], $twitter_token['oauth_token_secret']);
+
+		$file_path = $this->getRecentFile();
+		if (file_exists($file_path)){
+			$recent_id = file_get_contents($file_path);
+		}
+
+		$params = ['exclude_replies' => true, 'count' => 100];
+
+		if (!empty($recent_id)){
+			$output->writeln("Only getting Tweets since $recent_id");
+			$params['since_id'] = $recent_id;
+		}
+
+		$statuses = $connection->get('statuses/home_timeline', $params);
+
+		return $statuses;
 	}
 }
