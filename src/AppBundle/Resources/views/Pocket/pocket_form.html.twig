@@ -1,0 +1,11 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}Add a link to your pocket{% endblock %}
+
+{% block body %}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
+    <p><a href="{{ url_pocket_auth }}">Auth with Pocket</a></p>
+    <p>Current access token is: <strong>{{ access_token }}</strong></p>
+{% endblock %}

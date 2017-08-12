@@ -1,0 +1,18 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}Add an RSS feed{% endblock %}
+
+{% block body %}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
+
+    {% if rss_feeds %}
+        <h3>Existing feeds</h3>
+        <ul>
+        {% for key,rss in rss_feeds %}
+            <li>{{ rss.address }} - <a href="{{ rss.url_view }}">View</a></li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

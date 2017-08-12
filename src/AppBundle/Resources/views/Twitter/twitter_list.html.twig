@@ -1,0 +1,30 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}List of Tweets{% endblock %}
+
+{% block body %}
+    <h1>List of Tweets{% if access_token %} for {{ access_token.screen_name }}{% endif %}</h1>
+
+    <p><a href="{{ url_twitter_auth }}">Auth with Twitter</a></p>
+    {% if access_token %}
+        <p>Current access token is: <strong>{{ access_token.oauth_token }}</strong></p>
+    {% endif %}
+
+    <ul>
+        {% for tweet in tweets %}
+            <li>
+                <p><strong>@{{ tweet.user.screen_name }} ({{ tweet.user.name }})</strong>
+                    at {{ tweet.created_at|date('jS F g:ia') }}</p>
+                <p>{{ tweet.text }}</p>
+                {% if tweet.parsed_urls %}
+                    <p>URLs in this Tweet:</p>
+                    <ul>
+                    {% for url in tweet.parsed_urls %}
+                        <li>{{ url }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

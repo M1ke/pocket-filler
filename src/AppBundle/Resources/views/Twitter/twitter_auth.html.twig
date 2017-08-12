@@ -1,0 +1,8 @@
+{% extends "::base.html.twig" %}
+
+{% block title %}Auth with Twitter{% endblock %}
+
+{% block body %}
+    <p><a href="{{ url_twitter_auth }}">Auth with Twitter</a></p>
+    <p>Current access token is: <strong>{{ access_token }}</strong></p>
+{% endblock %}
