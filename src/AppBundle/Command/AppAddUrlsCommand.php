@@ -212,6 +212,7 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			$output->writeln("Searching for domain $domain");
 			$items = $pocket->retrieve([
 				'domain' => $domain,
+				'state' => 'all',
 			]);
 
 			$add_to_pocket = true;
