@@ -3,6 +3,7 @@
 namespace AppBundle\Command;
 
 use Abraham\TwitterOAuth\TwitterOAuth;
+use Pocket;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -59,6 +60,8 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$output->writeln("Got $count URLs");
 
 		$output->write($urls, true);
+
+		$this->addToPocket($urls, $pocket_token, $output);
 	}
 
 	/**
@@ -151,7 +154,7 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$extra_ignored = $this->getParameter('extra_ignore_urls');
 		$ignored = array_merge($extra_ignored, $ignored);
 
-		$url = str_replace(['http://', 'https://'], '', $url);
+		$url = $this->removeUrlProtocol($url);
 		foreach ($ignored as $ignore){
 			if (stripos($url, $ignore)===0){
 				return true;
@@ -192,5 +195,66 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$file_name = $file_path.'/access_token';
 
 		return $file_name;
+	}
+
+	/**
+	 * @param array $urls
+	 * @param string $pocket_token
+	 * @param OutputInterface $output
+	 */
+	private function addToPocket(array $urls, $pocket_token, OutputInterface $output){
+		$pocket = $this->newPocket($pocket_token);
+
+		foreach ($urls as $url){
+			$url_no_protocol = $this->removeUrlProtocol($url);
+			$domain = explode('/', $url_no_protocol)[0];
+
+			$output->writeln("Searching for domain $domain");
+			$items = $pocket->retrieve([
+				'domain' => $domain,
+			]);
+
+			$add_to_pocket = true;
+			foreach ($items['list'] as $item){
+				if ($item['given_url']==$url){
+					$output->writeln("Url $url is already added to Pocket");
+					$add_to_pocket = false;
+					break;
+				}
+			}
+
+			if ($add_to_pocket){
+				$output->writeln("Adding $url to Pocket");
+				$pocket->add([
+					'url' => $url,
+				]);
+			}
+		}
+	}
+
+	/**
+	 * @param string $access_token
+	 *
+	 * @return Pocket
+	 */
+	private function newPocket($access_token = ''){
+		$pocket = new Pocket([
+			'consumerKey' => $this->getParameter('pocket_key'),
+		]);
+		if (!empty($access_token)){
+			$pocket->setAccessToken($access_token);
+		}
+
+		return $pocket;
+	}
+
+	/**
+	 * @param $url
+	 * @return mixed
+	 */
+	private function removeUrlProtocol($url){
+		$url = str_replace(['http://', 'https://'], '', $url);
+
+		return $url;
 	}
 }

@@ -152,7 +152,7 @@ class PocketController extends Controller {
 		$pocket = new Pocket([
 			'consumerKey' => $this->getParameter('pocket_key'),
 		]);
-		if (!empty($auth_token)){
+		if (!empty($access_token)){
 			$pocket->setAccessToken($access_token);
 		}
 
