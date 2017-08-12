@@ -11,8 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class TwitterController extends Controller {
-	const TWITTER_KEY = 'ZvaTDT5QJitcQEzAXsg0w';
-	const TWITTER_SECRET = '4EvZ3Vlys0tTNtzGpw52SVlzEsyvOOsyLluAH2zco';
+	const TWITTER_KEY = '';
+	const TWITTER_SECRET = '';
 	const SESSION_TWITTER_AUTH = 'twitter_auth';
 	const COOKIE_TWITTER_TOKEN = 'twitter_auth';
 
