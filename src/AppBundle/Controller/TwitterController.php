@@ -162,7 +162,7 @@ class TwitterController extends Controller {
 	 * @param string $url
 	 * @return string
 	 */
-	private function expandShortUrl(string $url) : string {
+	private function expandShortUrl($url){
 		$headers = get_headers($url, 1);
 
 		if (!empty($headers['Location'])){
