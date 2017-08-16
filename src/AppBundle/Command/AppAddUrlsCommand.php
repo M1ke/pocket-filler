@@ -179,6 +179,8 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			'facebook.com',
 			'www.swarmapp.com',
 			'www.meetup.com',
+			'eventbrite.co.uk',
+			'www.instagram.com',
 		];
 
 		$extra_ignored = $this->getParameter('extra_ignore_urls');
