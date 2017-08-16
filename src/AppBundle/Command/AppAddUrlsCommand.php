@@ -188,6 +188,9 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			'eventbrite.co.uk',
 			'www.eventbrite.com',
 			'www.instagram.com',
+			'www.flickr.com/photos/',
+			'en.wikipedia.org',
+			'imgur.com',
 		];
 
 		$extra_ignored = $this->getParameter('extra_ignore_urls');
