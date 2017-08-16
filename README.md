@@ -28,6 +28,11 @@ Finally, combining these so that there is more intelligent logic would be very u
 
 Anyone is welcome to PR for these features or suggest how the service could be hosted or architected.
 
+Current bugs
+------------
+
+* Needs a way to tell difference between live/local and generate appropriate absolute URLs - I imagine Symfony has an inbuilt mechanism for this
+
 About
 -----
 
