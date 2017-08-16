@@ -124,13 +124,13 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			}
 
 			foreach ($urls as $url){
-				if ($this->containsIgnoredUrl($url->expanded_url)){
+				if ($this->notAUsefulArticle($url->expanded_url)){
 					continue;
 				}
 
 				$parsed_url = $this->expandShortUrl($url->expanded_url);
 
-				if ($this->containsIgnoredUrl($parsed_url)){
+				if ($this->notAUsefulArticle($parsed_url)){
 					continue;
 				}
 
@@ -145,6 +145,30 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 	 * @param string $url
 	 * @return bool
 	 */
+	private function notAUsefulArticle($url){
+		$url = $this->removeUrlProtocol($url);
+
+		if ($this->containsIgnoredUrl($url)){
+			return true;
+		}
+
+		if ($this->isAHomePage($url)){
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param $url
+	 * @return mixed
+	 */
+	private function removeUrlProtocol($url){
+		$url = str_replace(['http://', 'https://'], '', $url);
+
+		return $url;
+	}
+
 	private function containsIgnoredUrl($url){
 		$ignored = [
 			'twitter.com',
@@ -154,12 +178,12 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			'www.facebook.com',
 			'facebook.com',
 			'www.swarmapp.com',
+			'www.meetup.com',
 		];
 
 		$extra_ignored = $this->getParameter('extra_ignore_urls');
 		$ignored = array_merge($extra_ignored, $ignored);
 
-		$url = $this->removeUrlProtocol($url);
 		foreach ($ignored as $ignore){
 			if (stripos($url, $ignore)===0){
 				return true;
@@ -167,6 +191,25 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		}
 
 		return false;
+	}
+
+	private function isAHomePage($url){
+		$components = explode('//', $url);
+
+		if (count($components)>2){
+			// if there's more than 1 slash, then 3 or more components will
+			// be returned and it's not likely to be a home page
+			return false;
+		}
+
+		if (!empty($components[1])){
+			// if the part after the slash has content it
+			// is a page rather than a root page, so more likely
+			// an article
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -262,16 +305,6 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		}
 
 		return $pocket;
-	}
-
-	/**
-	 * @param $url
-	 * @return mixed
-	 */
-	private function removeUrlProtocol($url){
-		$url = str_replace(['http://', 'https://'], '', $url);
-
-		return $url;
 	}
 
 	/**
