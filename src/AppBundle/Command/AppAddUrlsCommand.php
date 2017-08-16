@@ -52,7 +52,7 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$count = count($statuses);
 		$output->writeln("Got $count Tweets");
 
-		$urls = $this->getUrlsFromTweets($statuses);
+		$urls = $this->getUrlsFromTweets($statuses, $output);
 
 		if (empty($urls)){
 			$output->writeln('No valid URLs in Tweets, ending');
@@ -111,9 +111,11 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 
 	/**
 	 * @param array $statuses
+	 * @param OutputInterface $output
+	 *
 	 * @return array
 	 */
-	private function getUrlsFromTweets(array $statuses){
+	private function getUrlsFromTweets(array $statuses, OutputInterface $output){
 		$parsed_urls = [];
 
 		foreach ($statuses as &$tweet){
@@ -124,13 +126,13 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			}
 
 			foreach ($urls as $url){
-				if ($this->notAUsefulArticle($url->expanded_url)){
+				if ($this->notAUsefulArticle($url->expanded_url, $output)){
 					continue;
 				}
 
 				$parsed_url = $this->expandShortUrl($url->expanded_url);
 
-				if ($this->notAUsefulArticle($parsed_url)){
+				if ($this->notAUsefulArticle($parsed_url, $output)){
 					continue;
 				}
 
@@ -143,16 +145,20 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 
 	/**
 	 * @param string $url
+	 * @param OutputInterface $output
+	 *
 	 * @return bool
 	 */
-	private function notAUsefulArticle($url){
+	private function notAUsefulArticle($url, OutputInterface $output){
 		$url = $this->removeUrlProtocol($url);
 
 		if ($this->containsIgnoredUrl($url)){
+			$output->writeln("URL ignored: $url");
 			return true;
 		}
 
 		if ($this->isAHomePage($url)){
+			$output->writeln("URL is a home page: $url");
 			return true;
 		}
 
