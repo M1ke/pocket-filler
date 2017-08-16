@@ -54,6 +54,8 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 
 		$urls = $this->getUrlsFromTweets($statuses, $output);
 
+		$this->storeRecentTweet($statuses);
+
 		if (empty($urls)){
 			$output->writeln('No valid URLs in Tweets, ending');
 			return;
@@ -65,8 +67,6 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 		$output->write($urls, true);
 
 		$this->addToPocket($urls, $pocket_token, $output);
-
-		$this->storeRecentTweet($statuses);
 	}
 
 	/**
@@ -186,6 +186,7 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 			'www.swarmapp.com',
 			'www.meetup.com',
 			'eventbrite.co.uk',
+			'www.eventbrite.com',
 			'www.instagram.com',
 		];
 
@@ -202,7 +203,7 @@ class AppAddUrlsCommand extends ContainerAwareCommand {
 	}
 
 	private function isAHomePage($url){
-		$components = explode('//', $url);
+		$components = explode('/', $url);
 
 		if (count($components)>2){
 			// if there's more than 1 slash, then 3 or more components will
